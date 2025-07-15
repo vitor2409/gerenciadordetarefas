@@ -1,5 +1,7 @@
 let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+let exams = JSON.parse(localStorage.getItem('exams')) || [];
 
+// Adicionar tarefa
 document.getElementById('task-form').addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -50,22 +52,29 @@ document.getElementById('task-form').addEventListener('submit', (e) => {
 
 document.getElementById('search').addEventListener('input', renderTasks);
 document.getElementById('status-filter').addEventListener('change', renderTasks);
+
 document.getElementById('export').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(tasks)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({tasks, exams})], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'backup_tarefas.json';
+  a.download = 'backup_gerenciador.json';
   a.click();
 });
+
 document.getElementById('import-json').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      tasks = JSON.parse(reader.result);
+      const data = JSON.parse(reader.result);
+      tasks = data.tasks || [];
+      exams = data.exams || [];
       saveTasks();
+      saveExams();
       renderTasks();
+      renderCalendar();
+      if(selectedDate) showDayEvents(selectedDate);
     } catch (err) {
       alert('Erro ao importar arquivo.');
     }
@@ -75,6 +84,10 @@ document.getElementById('import-json').addEventListener('change', (e) => {
 
 function saveTasks() {
   localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+function saveExams() {
+  localStorage.setItem('exams', JSON.stringify(exams));
 }
 
 function renderTasks() {
@@ -136,6 +149,7 @@ function updateStatus(id, newStatus) {
     task.status = newStatus;
     saveTasks();
     renderTasks();
+    if(selectedDate) showDayEvents(selectedDate);
   }
 }
 
@@ -148,6 +162,7 @@ function addComment(id) {
     task.comments.push({ author, text, date: new Date().toLocaleString() });
     saveTasks();
     renderTasks();
+    if(selectedDate) showDayEvents(selectedDate);
   }
 }
 
@@ -156,7 +171,124 @@ function deleteTask(id) {
     tasks = tasks.filter(t => t.id !== id);
     saveTasks();
     renderTasks();
+    if(selectedDate) showDayEvents(selectedDate);
   }
 }
 
+// --- CALENDÁRIO E PROVAS ---
+
+function renderCalendar() {
+  const calendarEl = document.getElementById('calendar');
+  calendarEl.innerHTML = '';
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  // Primeiro dia do mês
+  const firstDay = new Date(year, month, 1);
+  // Quantidade de dias do mês
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Dia da semana do primeiro dia (0=Dom, 6=Sáb)
+  let startDay = firstDay.getDay();
+  startDay = (startDay + 6) % 7; // Ajusta para começar segunda-feira
+
+  for (let i = 0; i < startDay; i++) {
+    const blank = document.createElement('div');
+    calendarEl.appendChild(blank);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayEl = document.createElement('div');
+    dayEl.classList.add('calendar-day');
+    if (day === today.getDate()) dayEl.classList.add('today');
+    dayEl.textContent = day;
+
+    dayEl.addEventListener('click', () => {
+      selectDay(year, month, day);
+    });
+
+    calendarEl.appendChild(dayEl);
+  }
+}
+
+let selectedDate = null;
+
+function selectDay(year, month, day) {
+  selectedDate = new Date(year, month, day);
+  // Marcar o dia selecionado
+  document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('selected'));
+  const calendarEl = document.getElementById('calendar');
+  for (let child of calendarEl.children) {
+    if (child.textContent == day) {
+      child.classList.add('selected');
+      break;
+    }
+  }
+
+  showDayEvents(selectedDate);
+}
+
+function showDayEvents(date) {
+  const dayEventsEl = document.getElementById('day-events');
+  dayEventsEl.innerHTML = '';
+
+  if (!date) {
+    dayEventsEl.textContent = 'Selecione um dia no calendário.';
+    return;
+  }
+
+  const dateStr = date.toISOString().slice(0, 10);
+
+  const tasksForDay = tasks.filter(t => t.deadline === dateStr);
+  const examsForDay = exams.filter(e => e.date === dateStr);
+
+  if (tasksForDay.length) {
+    const tasksTitle = document.createElement('h4');
+    tasksTitle.textContent = 'Tarefas:';
+    dayEventsEl.appendChild(tasksTitle);
+
+    tasksForDay.forEach(t => {
+      const tDiv = document.createElement('div');
+      tDiv.textContent = `${t.title} [${t.status}]`;
+      dayEventsEl.appendChild(tDiv);
+    });
+  }
+
+  if (examsForDay.length) {
+    const examsTitle = document.createElement('h4');
+    examsTitle.textContent = 'Provas:';
+    dayEventsEl.appendChild(examsTitle);
+
+    examsForDay.forEach(e => {
+      const eDiv = document.createElement('div');
+      eDiv.textContent = e.title;
+      dayEventsEl.appendChild(eDiv);
+    });
+  }
+
+  if (tasksForDay.length === 0 && examsForDay.length === 0) {
+    dayEventsEl.textContent = 'Nenhuma tarefa ou prova para este dia.';
+  }
+}
+
+document.getElementById('exam-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const examDate = document.getElementById('exam-date').value;
+  const examTitle = document.getElementById('exam-title').value.trim();
+
+  if (!examDate || !examTitle) return alert('Preencha a data e o título da prova.');
+
+  exams.push({ date: examDate, title: examTitle });
+  saveExams();
+  document.getElementById('exam-form').reset();
+
+  if (selectedDate && selectedDate.toISOString().slice(0, 10) === examDate) {
+    showDayEvents(selectedDate);
+  }
+});
+
+// Inicializações
+renderCalendar();
 renderTasks();

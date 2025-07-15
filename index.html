@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gerenciador de Tarefas</title>
+  <title>Gerenciador de Tarefas com Calendário</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -37,19 +37,36 @@
       </select>
     </section>
 
-    <section id="kanban">
-      <div class="kanban-column" data-status="A Fazer">
-        <h2>A Fazer</h2>
-        <div class="task-list" id="todo-list"></div>
-      </div>
-      <div class="kanban-column" data-status="Em Andamento">
-        <h2>Em Andamento</h2>
-        <div class="task-list" id="doing-list"></div>
-      </div>
-      <div class="kanban-column" data-status="Concluído">
-        <h2>Concluído</h2>
-        <div class="task-list" id="done-list"></div>
-      </div>
+    <section id="content-wrapper" style="display:flex; gap:1em; max-width:1200px; margin:auto;">
+      <section id="kanban" style="flex: 2;">
+        <div class="kanban-column" data-status="A Fazer">
+          <h2>A Fazer</h2>
+          <div class="task-list" id="todo-list"></div>
+        </div>
+        <div class="kanban-column" data-status="Em Andamento">
+          <h2>Em Andamento</h2>
+          <div class="task-list" id="doing-list"></div>
+        </div>
+        <div class="kanban-column" data-status="Concluído">
+          <h2>Concluído</h2>
+          <div class="task-list" id="done-list"></div>
+        </div>
+      </section>
+
+      <section id="calendar-section" style="flex: 1; background: #fff; border-radius: 8px; padding: 1em; box-shadow: 0 0 10px rgba(0,0,0,0.1); height: 80vh; overflow-y: auto;">
+        <h2>Calendário</h2>
+        <div id="calendar"></div>
+
+        <h3>Adicionar Prova</h3>
+        <form id="exam-form" style="margin-bottom:1em;">
+          <input type="date" id="exam-date" required />
+          <input type="text" id="exam-title" placeholder="Título da prova" required />
+          <button type="submit">Adicionar Prova</button>
+        </form>
+
+        <h3>Tarefas e Provas do dia</h3>
+        <div id="day-events">Selecione um dia no calendário.</div>
+      </section>
     </section>
   </main>
 

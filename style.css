@@ -96,3 +96,39 @@ footer {
   padding-left: 0.5em;
   border-left: 2px solid #ccc;
 }
+
+/* Calendário */
+
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  text-align: center;
+  margin-bottom: 1em;
+}
+
+.calendar-day {
+  padding: 10px;
+  background: #e9ecef;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.calendar-day.today {
+  background: #007bff;
+  color: white;
+  font-weight: bold;
+}
+
+.calendar-day.selected {
+  background: #0056b3;
+  color: white;
+}
+
+#day-events > div {
+  margin-bottom: 0.7em;
+  padding: 0.4em;
+  background: #f0f0f0;
+  border-radius: 4px;
+}
