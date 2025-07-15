@@ -1,7 +1,38 @@
-let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-let exams = JSON.parse(localStorage.getItem('exams')) || [];
+const BACKEND_URL = 'http://localhost:3000/data';
 
-// Adicionar tarefa
+let tasks = [];
+let exams = [];
+
+// --- CARREGAR DADOS DO SERVIDOR ---
+async function loadData() {
+  try {
+    const response = await fetch(BACKEND_URL);
+    if (!response.ok) throw new Error('Erro ao carregar dados do servidor');
+    const data = await response.json();
+    tasks = data.tasks || [];
+    exams = data.exams || [];
+    renderTasks();
+    renderCalendar();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+// --- SALVAR DADOS NO SERVIDOR ---
+async function saveToServer() {
+  try {
+    const response = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tasks, exams }),
+    });
+    if (!response.ok) throw new Error('Erro ao salvar dados no servidor');
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+// --- ADICIONAR TAREFA ---
 document.getElementById('task-form').addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -47,6 +78,7 @@ document.getElementById('task-form').addEventListener('submit', (e) => {
     saveTasks();
     renderTasks();
     document.getElementById('task-form').reset();
+    saveToServer(); // SALVA NO BACKEND
   });
 });
 
@@ -75,6 +107,7 @@ document.getElementById('import-json').addEventListener('change', (e) => {
       renderTasks();
       renderCalendar();
       if(selectedDate) showDayEvents(selectedDate);
+      saveToServer(); // SALVA NO BACKEND APÓS IMPORTAR
     } catch (err) {
       alert('Erro ao importar arquivo.');
     }
@@ -83,7 +116,7 @@ document.getElementById('import-json').addEventListener('change', (e) => {
 });
 
 function saveTasks() {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
+  localStorage.setItem('tasks', JSON.stringify(tasks)); // mantém localStorage para fallback
 }
 
 function saveExams() {
@@ -150,6 +183,7 @@ function updateStatus(id, newStatus) {
     saveTasks();
     renderTasks();
     if(selectedDate) showDayEvents(selectedDate);
+    saveToServer(); // SALVA NO BACKEND
   }
 }
 
@@ -163,6 +197,7 @@ function addComment(id) {
     saveTasks();
     renderTasks();
     if(selectedDate) showDayEvents(selectedDate);
+    saveToServer(); // SALVA NO BACKEND
   }
 }
 
@@ -172,6 +207,7 @@ function deleteTask(id) {
     saveTasks();
     renderTasks();
     if(selectedDate) showDayEvents(selectedDate);
+    saveToServer(); // SALVA NO BACKEND
   }
 }
 
@@ -185,14 +221,11 @@ function renderCalendar() {
   const year = today.getFullYear();
   const month = today.getMonth();
 
-  // Primeiro dia do mês
   const firstDay = new Date(year, month, 1);
-  // Quantidade de dias do mês
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // Dia da semana do primeiro dia (0=Dom, 6=Sáb)
   let startDay = firstDay.getDay();
-  startDay = (startDay + 6) % 7; // Ajusta para começar segunda-feira
+  startDay = (startDay + 6) % 7; // Ajusta para segunda-feira
 
   for (let i = 0; i < startDay; i++) {
     const blank = document.createElement('div');
@@ -217,7 +250,6 @@ let selectedDate = null;
 
 function selectDay(year, month, day) {
   selectedDate = new Date(year, month, day);
-  // Marcar o dia selecionado
   document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('selected'));
   const calendarEl = document.getElementById('calendar');
   for (let child of calendarEl.children) {
@@ -287,8 +319,9 @@ document.getElementById('exam-form').addEventListener('submit', e => {
   if (selectedDate && selectedDate.toISOString().slice(0, 10) === examDate) {
     showDayEvents(selectedDate);
   }
+
+  saveToServer(); // SALVA NO BACKEND
 });
 
-// Inicializações
-renderCalendar();
-renderTasks();
+// --- INICIALIZAÇÃO ---
+loadData();
