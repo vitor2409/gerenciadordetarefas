@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerenciador de Tarefas</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Gerenciador de Tarefas</h1>
+  </header>
+
+  <main>
+    <section id="form-section">
+      <form id="task-form">
+        <input type="text" id="title" placeholder="Título da tarefa" required />
+        <textarea id="description" placeholder="Descrição detalhada" required></textarea>
+        <input type="date" id="deadline" required />
+        <select id="priority">
+          <option value="Alta">Alta</option>
+          <option value="Média">Média</option>
+          <option value="Baixa">Baixa</option>
+        </select>
+        <input type="file" id="attachment" multiple accept="image/*,.pdf,.doc,.docx,.txt" />
+        <button type="submit">Adicionar Tarefa</button>
+      </form>
+    </section>
+
+    <section id="filters">
+      <input type="text" id="search" placeholder="Buscar por palavra-chave..." />
+      <select id="status-filter">
+        <option value="">Todos os status</option>
+        <option value="A Fazer">A Fazer</option>
+        <option value="Em Andamento">Em Andamento</option>
+        <option value="Concluído">Concluído</option>
+      </select>
+    </section>
+
+    <section id="kanban">
+      <div class="kanban-column" data-status="A Fazer">
+        <h2>A Fazer</h2>
+        <div class="task-list" id="todo-list"></div>
+      </div>
+      <div class="kanban-column" data-status="Em Andamento">
+        <h2>Em Andamento</h2>
+        <div class="task-list" id="doing-list"></div>
+      </div>
+      <div class="kanban-column" data-status="Concluído">
+        <h2>Concluído</h2>
+        <div class="task-list" id="done-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <button id="export">Exportar JSON</button>
+    <input type="file" id="import-json" accept="application/json" />
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
